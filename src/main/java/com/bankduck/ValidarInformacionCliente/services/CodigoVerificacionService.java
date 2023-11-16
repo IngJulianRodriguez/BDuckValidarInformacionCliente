@@ -1,22 +1,29 @@
 package com.bankduck.ValidarInformacionCliente.services;
 
+import com.bankduck.ValidarInformacionCliente.Utils.Generador;
+import com.bankduck.ValidarInformacionCliente.dto.CodigoVerificacionRequest;
 import com.bankduck.ValidarInformacionCliente.dto.MensajeRequest;
+import com.bankduck.ValidarInformacionCliente.entities.CodigoVerificacion;
 import com.bankduck.ValidarInformacionCliente.repository.CodigoVerificacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 public class CodigoVerificacionService {
 
+    @Autowired
+    CodigoVerificacionService codigoVerificacionService;
     private final CodigoVerificacionRepository codigoVerificacionRepository;
 
     @Value("${server.enviarSMS.url}")  // Configura la URL del servidor B en tu archivo application.properties
@@ -52,7 +59,31 @@ public class CodigoVerificacionService {
                 });
 
     }
+    public void GenerarCodigo(Long cedula){
+        Long codigo;
+        Optional<CodigoVerificacion> optionalCodigoVerificacion = codigoVerificacionRepository.findById(cedula);
+        if(optionalCodigoVerificacion.isPresent()){
+            codigo = optionalCodigoVerificacion.get().getCodigo();
+        }else {
+            codigo = Generador.CodigoVerificacion();
+            CodigoVerificacion codigoVerificacion = new CodigoVerificacion();
+            codigoVerificacion.setCodigo(codigo);
+            codigoVerificacion.setCedula(cedula);
+            codigoVerificacionRepository.save(codigoVerificacion);
+        }
+        codigoVerificacionService.enviarCodigo(codigo);
 
+    }
+    public boolean VerificarCodigo(CodigoVerificacionRequest input){
+        Optional<CodigoVerificacion> optionalCodigoVerificacion
+                = codigoVerificacionRepository.findByCedulaAndCodigo(input.getCedula(), input.getCodigo());
+        if (optionalCodigoVerificacion.isPresent()) {
+            codigoVerificacionService.eliminarPorCedulaYCodigo(input.getCedula(), input.getCodigo());
+            return true;
+        }else{
+            return false;
+        }
+    }
     private String encodeCredentials(String username, String password) {
         return Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }

@@ -16,6 +16,7 @@ import com.bankduck.ValidarInformacionCliente.repository.ServicioRepository;
 import com.bankduck.ValidarInformacionCliente.repository.ServiciosClienteRepository;
 import com.bankduck.ValidarInformacionCliente.services.ClienteService;
 import com.bankduck.ValidarInformacionCliente.services.CodigoVerificacionService;
+import com.bankduck.ValidarInformacionCliente.services.ServicioService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,24 +35,15 @@ public class ValidacionClienteRestController {
     ClienteRepository clienteRepository;
 
     @Autowired
-    ServicioRepository servicioRepository;
-
-    @Autowired
-    CodigoVerificacionRepository codigoVerificacionRepository;
-
-    @Autowired
-    ServiciosClienteRepository serviciosClienteRepository;
-
-    @Autowired
     ClienteResponseMapper clienteResponseMapper;
-    @Autowired
-    ClienteRequestMapper clienteRequestMapper;
 
     @Autowired
     CodigoVerificacionService codigoVerificacionService;
     @Autowired
     ClienteService clienteService;
 
+    @Autowired
+    ServicioService servicioService;
 @PostMapping("/{idServicio}")
 public ResponseEntity<?> post(@PathVariable String idServicio,@RequestBody ClienteRequest input) throws InterruptedException {
     if(idServicio.isEmpty()){
@@ -82,55 +74,27 @@ public ResponseEntity<?> post(@PathVariable String idServicio,@RequestBody Clien
 
     @GetMapping("/existeUsuario/{cedula}")
     public boolean existeUsuario(@PathVariable Long cedula) {
-        Optional<Cliente> findById = clienteRepository.findById(cedula);
-        if (findById.isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
+        return clienteService.existeUsuario(cedula);
+
     }
     @GetMapping("/existeServicio/{idServicio}")
     public boolean existeServicio(@PathVariable Long idServicio) {
-        Optional<Servicio> findById = servicioRepository.findById(idServicio);
-        if (findById.isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
+        return servicioService.ExisteServicio(idServicio);
     }
     @GetMapping("/usuarioTieneServicio/{cedula}/{idServicio}")
     public boolean usuarioTieneServicio(@PathVariable Long cedula,@PathVariable Long idServicio) {
-
-        Optional<ServiciosCliente> findById = serviciosClienteRepository.findByClienteCedulaAndServicioId(cedula,idServicio);
-        if (findById.isPresent()) {
-            return true;
-        } else {
-            return false;
-        }
+        return clienteService.ClienteTieneServicio(cedula, idServicio);
     }
     @GetMapping("/generarCodigo/{cedula}")
     public void generarCodigo(@PathVariable Long cedula) {
-        Long codigo;
-        Optional<CodigoVerificacion> optionalCodigoVerificacion = codigoVerificacionRepository.findById(cedula);
-        if(optionalCodigoVerificacion.isPresent()){
-            codigo = optionalCodigoVerificacion.get().getCodigo();
-        }else {
-            codigo = Generador.CodigoVerificacion();
-            CodigoVerificacion codigoVerificacion = new CodigoVerificacion();
-            codigoVerificacion.setCodigo(codigo);
-            codigoVerificacion.setCedula(cedula);
-            codigoVerificacionRepository.save(codigoVerificacion);
-        }
-        codigoVerificacionService.enviarCodigo(codigo);
+        codigoVerificacionService.GenerarCodigo(cedula);
 
     }
 
     @PostMapping("/VerificarTelefono")
     public ResponseEntity<?> VerificarTelefono(@RequestBody CodigoVerificacionRequest input) {
-        Optional<CodigoVerificacion> optionalCodigoVerificacion
-                = codigoVerificacionRepository.findByCedulaAndCodigo(input.getCedula(), input.getCodigo());
-        if (optionalCodigoVerificacion.isPresent()) {
-            codigoVerificacionService.eliminarPorCedulaYCodigo(input.getCedula(), input.getCodigo());
+        boolean codigoVerificado = codigoVerificacionService.VerificarCodigo(input);
+        if (codigoVerificado) {
             return ResponseEntity.ok("ok");
         }else{
             return ResponseEntity.notFound().build();
