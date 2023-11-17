@@ -70,6 +70,7 @@ public class CodigoVerificacionService {
         enviarCodigo(codigo);
 
     }
+    @Transactional
     public boolean VerificarCodigo(CodigoVerificacionRequest input){
         Optional<CodigoVerificacion> optionalCodigoVerificacion
                 = codigoVerificacionRepository.findByCedulaAndCodigo(input.getCedula(), input.getCodigo());
