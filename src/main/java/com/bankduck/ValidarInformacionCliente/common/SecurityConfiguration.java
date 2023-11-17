@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -59,11 +60,22 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        CorsFilter bean = new CorsFilter(source);
+        return bean;
+    }
+    @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cc = new CorsConfiguration();
         cc.setAllowedHeaders(Arrays.asList("Origin,Accept", "X-Requested-With", "Content-Type", "Access-Control-Request-Method", "Access-Control-Request-Headers","Authorization"));
         cc.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
-        cc.setAllowedOriginPatterns(Arrays.asList("http://127.0.0.1:5500/"));
+        cc.setAllowedOrigins(Arrays.asList("*"));
         cc.setAllowedMethods(Arrays.asList("GET", "POST"));
         cc.setMaxAge(Duration.ZERO);
         cc.setAllowCredentials(Boolean.TRUE);
@@ -73,4 +85,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         return source;
     }
+
 }
