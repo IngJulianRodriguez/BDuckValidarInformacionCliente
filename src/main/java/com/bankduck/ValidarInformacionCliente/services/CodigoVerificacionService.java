@@ -23,14 +23,10 @@ import java.util.Optional;
 public class CodigoVerificacionService {
 
     @Autowired
-    CodigoVerificacionService codigoVerificacionService;
-    private final CodigoVerificacionRepository codigoVerificacionRepository;
+    CodigoVerificacionRepository codigoVerificacionRepository;
 
     @Value("${server.enviarSMS.url}")  // Configura la URL del servidor B en tu archivo application.properties
     private String serverEnviarSMS;
-    public CodigoVerificacionService(CodigoVerificacionRepository codigoVerificacionRepository) {
-        this.codigoVerificacionRepository = codigoVerificacionRepository;
-    }
 
     @Transactional
     public void eliminarPorCedulaYCodigo(Long cedula, Long codigo) {
@@ -71,14 +67,14 @@ public class CodigoVerificacionService {
             codigoVerificacion.setCedula(cedula);
             codigoVerificacionRepository.save(codigoVerificacion);
         }
-        codigoVerificacionService.enviarCodigo(codigo);
+        enviarCodigo(codigo);
 
     }
     public boolean VerificarCodigo(CodigoVerificacionRequest input){
         Optional<CodigoVerificacion> optionalCodigoVerificacion
                 = codigoVerificacionRepository.findByCedulaAndCodigo(input.getCedula(), input.getCodigo());
         if (optionalCodigoVerificacion.isPresent()) {
-            codigoVerificacionService.eliminarPorCedulaYCodigo(input.getCedula(), input.getCodigo());
+            eliminarPorCedulaYCodigo(input.getCedula(), input.getCodigo());
             return true;
         }else{
             return false;

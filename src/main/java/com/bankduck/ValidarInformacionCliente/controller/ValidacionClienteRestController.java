@@ -1,19 +1,8 @@
 package com.bankduck.ValidarInformacionCliente.controller;
 
-import com.bankduck.ValidarInformacionCliente.Utils.Generador;
-import com.bankduck.ValidarInformacionCliente.common.ClienteRequestMapper;
-import com.bankduck.ValidarInformacionCliente.common.ClienteResponseMapper;
 import com.bankduck.ValidarInformacionCliente.dto.ClienteRequest;
 import com.bankduck.ValidarInformacionCliente.dto.ClienteResponse;
 import com.bankduck.ValidarInformacionCliente.dto.CodigoVerificacionRequest;
-import com.bankduck.ValidarInformacionCliente.entities.Cliente;
-import com.bankduck.ValidarInformacionCliente.entities.CodigoVerificacion;
-import com.bankduck.ValidarInformacionCliente.entities.Servicio;
-import com.bankduck.ValidarInformacionCliente.entities.ServiciosCliente;
-import com.bankduck.ValidarInformacionCliente.repository.ClienteRepository;
-import com.bankduck.ValidarInformacionCliente.repository.CodigoVerificacionRepository;
-import com.bankduck.ValidarInformacionCliente.repository.ServicioRepository;
-import com.bankduck.ValidarInformacionCliente.repository.ServiciosClienteRepository;
 import com.bankduck.ValidarInformacionCliente.services.ClienteService;
 import com.bankduck.ValidarInformacionCliente.services.CodigoVerificacionService;
 import com.bankduck.ValidarInformacionCliente.services.ServicioService;
@@ -31,11 +20,6 @@ import java.util.Optional;
 @RequestMapping("/validacionCliente")
 public class ValidacionClienteRestController {
 
-    @Autowired
-    ClienteRepository clienteRepository;
-
-    @Autowired
-    ClienteResponseMapper clienteResponseMapper;
 
     @Autowired
     CodigoVerificacionService codigoVerificacionService;
@@ -65,10 +49,8 @@ public ResponseEntity<?> post(@PathVariable String idServicio,@RequestBody Clien
     }
     Thread.sleep(2000);
     clienteService.asignarServicioEnProceso(input.getCedula(),longIdServicio);
+    ClienteResponse clienteResponse = clienteService.obtenerClienteResponseById(input.getCedula());
 
-    Optional<Cliente> optionalCliente = clienteRepository.findById(input.getCedula());
-    Cliente cliente = optionalCliente.get();
-    ClienteResponse clienteResponse =  clienteResponseMapper.ClienteToClienteResponse(cliente);
     return ResponseEntity.ok (clienteResponse);
 }
 

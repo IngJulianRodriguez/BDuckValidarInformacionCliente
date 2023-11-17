@@ -1,6 +1,8 @@
 package com.bankduck.ValidarInformacionCliente.services;
 
+import com.bankduck.ValidarInformacionCliente.common.ClienteResponseMapper;
 import com.bankduck.ValidarInformacionCliente.dto.ClienteRequest;
+import com.bankduck.ValidarInformacionCliente.dto.ClienteResponse;
 import com.bankduck.ValidarInformacionCliente.dto.MensajeRequest;
 import com.bankduck.ValidarInformacionCliente.entities.Cliente;
 import com.bankduck.ValidarInformacionCliente.entities.ServiciosCliente;
@@ -27,6 +29,8 @@ public class ClienteService {
     @Autowired
     ServiciosClienteRepository serviciosClienteRepository;
 
+    @Autowired
+    ClienteResponseMapper clienteResponseMapper;
     @Value("${server.administrarCliente.url}")  // Configura la URL del servidor B en tu archivo application.properties
     private String serverAdministrarCliente;
     public void crearClienteEnProceso(ClienteRequest input) {
@@ -78,6 +82,12 @@ public class ClienteService {
         } else {
             return false;
         }
+    }
+    public ClienteResponse obtenerClienteResponseById(Long cedula){
+        Optional<Cliente> optionalCliente = clienteRepository.findById(cedula);
+        Cliente cliente = optionalCliente.get();
+        ClienteResponse clienteResponse =  clienteResponseMapper.ClienteToClienteResponse(cliente);
+        return clienteResponse;
     }
     private String encodeCredentials(String username, String password) {
         return Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
